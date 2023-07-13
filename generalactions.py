@@ -1,6 +1,6 @@
 from tkinter import messagebox
 import pandas as pd
-from СapitalСonstruction import capconstruction
+from СapitalСonstruction import cap_construction
 from functools import cache
 
 
@@ -17,5 +17,5 @@ class ParseAndEnter():
                                 sheet_name='Sheet1')
         except:
             messagebox.showerror("Ошибка", "Не верно выбраны файлы")
-        CS = capconstruction()
+        CS = cap_construction()
         CS.automatic(dfs, self.templatePath)
