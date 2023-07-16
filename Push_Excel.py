@@ -18,6 +18,14 @@ class push_excel():
             cell.value = (data.loc[index_data, column_data] / 1000)
 
     @cache
+    def find_index(self, name):
+        index = 0
+        for cell in self.sheet.iter_cols(min_row=5, max_row=5, values_only=True):
+            if cell[0] == name:
+                return index
+            index += 1
+
+    @cache
     def find_column(self, sub_strs, min_row, max_row):
         index = 1
         indexes = []
