@@ -1,6 +1,7 @@
 import openpyxl
 from tkinter import messagebox
 from functools import cache
+import Global_Var
 
 
 class push_excel():
@@ -39,3 +40,10 @@ class push_excel():
             if len(indexes) == 2:
                 break
         return indexes
+
+    @cache
+    def find_row_direction_cases(self, Nd_requirements):
+        for row in range(6, self.sheet.max_row + 1):
+            if Nd_requirements == self.sheet[row][Global_Var.index_Nd].value:
+                return row
+        return None
