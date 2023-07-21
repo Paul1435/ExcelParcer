@@ -31,7 +31,7 @@ class Window(Tk, Singleton):
 
         # icon and background
         self.iconbitmap("logo.ico")
-        self.image = PhotoImage(file='background.png')
+        self.image = PhotoImage(file='background2.png')
         bg_logo = Label(self, image=self.image)
         bg_logo.place(x=0, y=0)
         print("calling from __init__")

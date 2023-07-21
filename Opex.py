@@ -1,5 +1,4 @@
 from functools import cache
-from Data import Data
 from Pivot_Table import create_pivot_table
 from tkinter import messagebox
 import Global_Var
@@ -8,9 +7,9 @@ import Global_Var
 class opex():
     def __init__(self, excel):
         self.pivot_table = None
-        self.data = Data()
         self.class_est = [800, 802, 1800]
-        self.group_direction = ["ОД_вспомогательные", "Основная деятельность"]
+        self.group_direction_cur = ["ОД_вспомогательные", "Основная деятельность"]
+        self.group_insurance_stock = ["Прочие, не учитываемые в расчете оборачиваемости"]
         self.direction_do = [5, 6, 60]
         self.excel = excel
         print("opex init")
@@ -25,40 +24,81 @@ class opex():
                 return row
         return None
 
-    def create_pivot_table(self, dfs):
-        pre_pivot_table = dfs.loc[
-            (~dfs["Напр.Деятельности"].isin(self.direction_do)) & (
-                dfs["Группа направлений"].isin(self.group_direction)) & (
-                ~dfs["Класс оценки"].isin(self.class_est))]
-        values = ['Приход', 'Расход', pre_pivot_table.columns[6]]
-        self.pivot_table = create_pivot_table(pre_pivot_table, 'КодСлужбыГС', values, 'sum')
+    def create_pivot_table(self, category):
+        values = ['Приход', 'Расход', self.dictionary_pivot_table[category].columns[6]]
+        self.pivot_table = create_pivot_table(self.dictionary_pivot_table[category], 'КодСлужбыГС', values, 'sum')
+        if "1020-11" in self.pivot_table.index:
+            if '102-11' in self.pivot_table.index:
+                self.pivot_table.loc['102-11'] += self.pivot_table.loc['1020-11']
+            else:
+                self.pivot_table.loc['102-11'] = 0
+                self.pivot_table.loc['102-11'] += self.pivot_table.loc['1020-11']
+            self.pivot_table = self.pivot_table.drop('1020-11')
+
+    def pre_pivot_table(self, dfs):
+        self.dictionary_pivot_table = {
+            "текущий запас": dfs.loc[
+                (~dfs["Напр.Деятельности"].isin(self.direction_do)) & (
+                    dfs["Группа направлений"].isin(self.group_direction_cur)) & (
+                    ~dfs["Класс оценки"].isin(self.class_est))],
+            "страховые запасы": dfs.loc[
+                (dfs["Направление(Форма2)"].isin(["Страховые запасы и Аварийные запасы"])) & (
+                    dfs["Группа направлений"].isin(self.group_insurance_stock)) & (
+                    ~dfs["Класс оценки"].isin(self.class_est))],
+            "вторичное сырье": dfs.loc[
+                (dfs["Направление(Форма2)"].isin(["Втор. сырье"])) & (
+                    dfs["Группа направлений"].isin(["Прочие, учитываемые в расчете оборачиваемости"])) & (
+                    ~dfs["Класс оценки"].isin(self.class_est))],
+            "НВИ": dfs.loc[
+                (dfs["Направление(Форма2)"].isin(["НВИ/НЛИ"])) & (
+                    dfs["Группа направлений"].isin(["Прочие, учитываемые в расчете оборачиваемости"])) & (
+                    ~dfs["Класс оценки"].isin(self.class_est)) & (
+                    dfs["Категория запаса"].isin(["NV"]))],
+            "НЛИ": dfs.loc[
+                (dfs["Направление(Форма2)"].isin(["НВИ/НЛИ"])) & (
+                    dfs["Группа направлений"].isin(["Прочие, учитываемые в расчете оборачиваемости"])) & (
+                    ~dfs["Класс оценки"].isin(self.class_est)) & (
+                    dfs["Категория запаса"].isin(["NL"]))],
+            "ОП": dfs.loc[
+                (~dfs["Напр.Деятельности"].isin(self.direction_do[:2])) & (
+                    dfs["Группа направлений"].isin(["Опережающая поставка"])) & (
+                    ~dfs["Класс оценки"].isin(self.class_est))]
+        }
 
     def automatic(self, dfs, templatePath):
-        self.create_pivot_table(dfs)
-        # data_pivot = str(self.pivot_table.columns[2]).split(' ')[1]
-        # cur_time = self.current_time(data_pivot)
-        # need_period = self.next_time(data_pivot)
-        self.add_value_excel(templatePath)
+        self.pre_pivot_table(dfs)
+        for type in self.dictionary_pivot_table:
+            self.create_pivot_table(type)
+            print(self.pivot_table)
+            self.add_value_excel(templatePath, type)
+        print("Successful enter opex")
 
-    # def current_time(self, data_pivot):
-    #     cur_time = self.data.common_format(data_pivot)
-    #     return self.data.table_format(cur_time)
-    #
-    # def next_time(self, data_pivot):
-    #     cur_time = self.data.common_format(data_pivot)
-    #     next_month = (cur_time + timedelta(days=int(data_pivot[:2]))).replace(day=1)
-    #     return self.data.table_format(next_month)
-
-    def add_value_excel(self, templatePath):
+    def add_value_excel(self, templatePath, category):
         begin_row = Global_Var.start_opex
+        sub_category = category
+        if category == "ОП":
+            sub_category = "текущий запас"
         for index in self.pivot_table.index:
-            row = self.find_row(self.excel.sheet, "OPEX", index, "текущий запас", "факт", begin_row)
-            begin_row = row
-            self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index, self.pivot_table.columns[2])
-            self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
-            self.excel.push_cell(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
+            if (index == "102-04" or index == "102-11"):
+                row = self.find_row(self.excel.sheet, "КС", index, sub_category, "факт", Global_Var.start_cap_con)
+                begin_row = Global_Var.start_opex
+            else:
+                row = self.find_row(self.excel.sheet, "OPEX", index, sub_category, "факт", begin_row)
+                begin_row = row
+            if row is None:
+                Global_Var.mistakes.append("Opex " + str(category) + " " + str(index))
+                begin_row = Global_Var.start_opex
+                continue
+            if category != "ОП":
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                     self.pivot_table.columns[2])
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
+            else:
+                self.excel.additional_res(self.pivot_table, row, [max(Global_Var.columns_reserve)], index,
+                                          self.pivot_table.columns[2])
+                self.excel.push_cell(self.pivot_table, row, Global_Var.OP_column, index, "Приход")
         try:
             self.excel.workbook.save(templatePath)
         except:
             messagebox.showerror("Ошибка", "Нет доступа к файлу " + templatePath + " вероятно он открыт.")
-        print("Successful enter opex")

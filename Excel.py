@@ -1,6 +1,8 @@
 import openpyxl
 from tkinter import messagebox
 from functools import cache
+from numba import prange
+
 import Global_Var
 
 
@@ -12,6 +14,14 @@ class push_excel():
             self.sheet = self.workbook["Лист1"]
         except:
             messagebox.showerror("Ошибка", "Неверно выбраны файлы")
+
+    def additional_res(self, data, row_enter, columns_enter, index_data, column_data):
+        for column in columns_enter:
+            cell = self.sheet.cell(row=row_enter, column=column)
+            if cell.value is None:
+                cell.value = (data.loc[index_data, column_data] / 1000)
+            else:
+                cell.value += (data.loc[index_data, column_data] / 1000)
 
     def push_cell(self, data, row_enter, columns_enter, index_data, column_data):
         for column in columns_enter:
@@ -26,7 +36,6 @@ class push_excel():
                 return index
             index += 1
 
-    @cache
     def find_column(self, sub_strs, min_row, max_row):
         index = 1
         indexes = []
@@ -41,9 +50,8 @@ class push_excel():
                 break
         return indexes
 
-    @cache
     def find_row_direction_cases(self, Nd_requirements):
-        for row in range(6, self.sheet.max_row + 1):
+        for row in prange(6, self.sheet.max_row + 1):
             if Nd_requirements == self.sheet[row][Global_Var.index_Nd].value:
                 return row
         return None
