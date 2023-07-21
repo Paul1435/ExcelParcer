@@ -108,9 +108,11 @@ class cap_construction:
             messagebox.showerror("Ошибка", "Нет доступа к файлу " + path + " вероятно он открыт.")
         print("Successful enter KC")
 
-    def automatic(self, obj, template_obj):
+    def automatic(self, obj, template_obj, call_back):
         self.values = ['Приход', 'Расход', obj.columns[6]]
         self.init_filters(obj)
         for type in self.type:
             self.general_table(obj, type)
             self.add_value_excel(template_obj, type)
+            Global_Var.step_load += 3
+            call_back(Global_Var.step_load)

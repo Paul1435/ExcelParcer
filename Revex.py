@@ -29,9 +29,11 @@ class revex():
         values = ['Приход', 'Расход', pre_pivot_table.columns[6]]
         self.pivot_table = create_pivot_table(pre_pivot_table, 'КодСлужбыГС', values, 'sum')
 
-    def automatic(self, dfs, templatePath):
+    def automatic(self, dfs, templatePath, call_back):
         self.create_pivot_table(dfs)
         self.add_value_excel(templatePath)
+        Global_Var.step_load += 5
+        call_back(Global_Var.step_load)
 
     @cache
     def add_value_excel(self, templatePath):

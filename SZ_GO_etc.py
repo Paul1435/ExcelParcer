@@ -33,11 +33,13 @@ class Sz_Go_etc():
                                            (dfs["Группа направлений"].isin(self.group_insurance_stock)) & (
                                                dfs["Направление(Форма2)"].isin(["СОиСИЗ"]))]}
 
-    def automatic(self, dfs, templatePath):
+    def automatic(self, dfs, templatePath, call_back):
         self.pre_pivot_table(dfs)
         for type in self.dictionary_pivot_table:
             self.create_pivot_table(type)
             self.add_value_excel(templatePath, type)
+            Global_Var.step_load += 5
+            call_back(Global_Var.step_load)
         print("Successful enter Го СОиСИЗ")
 
     def add_value_excel(self, templatePath, category):

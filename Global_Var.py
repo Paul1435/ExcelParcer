@@ -19,3 +19,4 @@ cur_data = None  #
 next_month = None  #
 
 mistakes = []  #
+step_load = 0

@@ -44,13 +44,15 @@ class OHCC():
                     dfs["Класс оценки"].isin(self.class_est))]
         }
 
-    def automatic(self, dfs, templatePath):
+    def automatic(self, dfs, templatePath, call_back):
         self.pre_pivot_table(dfs)
         for category in self.dictionary_pivot_table:
             print(category)
             self.create_pivot_table(category)
             print(self.pivot_table)
             self.add_value_excel(templatePath, category)
+            Global_Var.step_load += 3
+            call_back(Global_Var.step_load)
         print("Заполнение ОНСС закончено")
 
     def create_pivot_table(self, category):

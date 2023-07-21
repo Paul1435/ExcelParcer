@@ -78,7 +78,7 @@ class drilling():
             messagebox.showerror("Ошибка", "Нет доступа к файлу " + path + " вероятно он открыт.")
         print("Successful enter drilling")
 
-    def automatic(self, obj, template_obj):
+    def automatic(self, obj, template_obj, call_back):
         type = ["текущий запас", 'ОП']
         self.create_filter(obj)
         for category in type:
@@ -86,3 +86,5 @@ class drilling():
             self.general_table(obj, category)
             print(self.pivot_table)
             self.add_value_excel(template_obj, category)
+            Global_Var.step_load += 4
+            call_back(Global_Var.step_load)
