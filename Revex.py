@@ -22,21 +22,35 @@ class revex():
                 return row
         return None
 
-    def create_pivot_table(self, dfs):
-        pre_pivot_table = dfs.loc[
-            (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
-                dfs["Группа направлений"].isin(self.group_direction))]
-        values = ['Приход', 'Расход', pre_pivot_table.columns[6]]
-        self.pivot_table = create_pivot_table(pre_pivot_table, 'КодСлужбыГС', values, 'sum')
+    def pre_pivot_table(self, dfs):
+        self.dictionary_pivot_table = {
+            "текущий запас": dfs.loc[
+                (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
+                    dfs["Группа направлений"].isin(self.group_direction))],
+            "ОП": dfs.loc[
+                (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
+                    dfs["Группа направлений"].isin(["Опережающая поставка"]))],
+            "Ошибка": dfs.loc[
+                (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
+                    dfs["Группа направлений"].isin(["Ошибка"]))]
+        }
+
+    def create_pivot_table(self, dfs, category):
+        values = ['Приход', 'Расход', self.dictionary_pivot_table[category].columns[6]]
+        self.pivot_table = create_pivot_table(self.dictionary_pivot_table[category], 'КодСлужбыГС', values, 'sum')
 
     def automatic(self, dfs, templatePath, call_back):
-        self.create_pivot_table(dfs)
-        self.add_value_excel(templatePath)
-        Global_Var.step_load += 5
-        call_back(Global_Var.step_load)
+        self.pre_pivot_table(dfs)
+        for category in self.dictionary_pivot_table:
+            print(category)
+            self.create_pivot_table(dfs, category)
+            print(self.pivot_table)
+            self.add_value_excel(templatePath, category)
+            Global_Var.step_load += 2
+            call_back(Global_Var.step_load)
 
     @cache
-    def add_value_excel(self, templatePath):
+    def add_value_excel(self, templatePath, category):
         begin_row = Global_Var.start_revex
         for index in self.pivot_table.index:
             row = self.find_row(self.excel.sheet, "OPEX", index, "текущий запас", "факт", begin_row)
@@ -45,9 +59,20 @@ class revex():
                 Global_Var.mistakes.append("REVEX " + str(index))
                 begin_row = Global_Var.start_revex
                 continue
-            self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index, self.pivot_table.columns[2])
-            self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
-            self.excel.push_cell(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
+            if category == "Ошибка":
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                          self.pivot_table.columns[2])
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
+            elif category == "ОП":
+                self.excel.additional_res(self.pivot_table, row, [max(Global_Var.columns_reserve)], index,
+                                          self.pivot_table.columns[2])
+                self.excel.push_cell(self.pivot_table, row, Global_Var.OP_column, index, "Приход")
+            else:
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                     self.pivot_table.columns[2])
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
         try:
             self.excel.workbook.save(templatePath)
         except:

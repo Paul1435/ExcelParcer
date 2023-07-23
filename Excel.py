@@ -1,7 +1,6 @@
 import openpyxl
 from tkinter import messagebox
 from functools import cache
-from numba import prange
 
 import Global_Var
 
@@ -51,7 +50,7 @@ class push_excel():
         return indexes
 
     def find_row_direction_cases(self, Nd_requirements):
-        for row in prange(6, self.sheet.max_row + 1):
+        for row in range(6, self.sheet.max_row + 1):
             if Nd_requirements == self.sheet[row][Global_Var.index_Nd].value:
                 return row
         return None

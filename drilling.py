@@ -17,10 +17,13 @@ class drilling():
         dictionary_pivot_table = {
             "текущий запас": dfs.loc[
                 (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
-                    dfs["Кр. текст материала"].isin(filtered_values))],
+                    dfs["Кр. текст материала"].isin(filtered_values)) & (dfs["Группа направлений"].isin(["ИД"]))],
             "ОП": dfs.loc[(dfs["Группа направлений"].isin(["Опережающая поставка"])) &
                           (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
-                              dfs["Кр. текст материала"].isin(filtered_values))]
+                              dfs["Кр. текст материала"].isin(filtered_values))],
+            "Ошибка": dfs.loc[(dfs["Группа направлений"].isin(["Ошибка"])) &
+                              (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
+                                  dfs["Кр. текст материала"].isin(filtered_values))]
         }
         values = ['Приход', 'Расход', dfs.columns[6]]
         return create_pivot_table(dictionary_pivot_table[type], 'КодСлужбыГС', values, 'sum')
@@ -67,6 +70,11 @@ class drilling():
                 self.excel.additional_res(self.pivot_table, row, [max(Global_Var.columns_reserve)], index,
                                           self.pivot_table.columns[2])
                 self.excel.push_cell(self.pivot_table, row, Global_Var.OP_column, index, "Приход")
+            elif category == "Ошибка":
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                          self.pivot_table.columns[2])
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
             else:
                 self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index,
                                      self.pivot_table.columns[2])
@@ -79,7 +87,7 @@ class drilling():
         print("Successful enter drilling")
 
     def automatic(self, obj, template_obj, call_back):
-        type = ["текущий запас", 'ОП']
+        type = ["текущий запас", 'ОП', "Ошибка"]
         self.create_filter(obj)
         for category in type:
             print(category)

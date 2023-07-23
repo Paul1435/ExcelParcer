@@ -18,7 +18,7 @@ class Window(Tk, Singleton):
         self.style = Style()
         self.style.configure('TButton', font=
         ('calibri', 9, 'bold'), foreground='black',
-                             borderwidth='2')
+                             borderwidth=0)
         # Инициализация путей  и переменных двух файлов
         self.pathData = None
         self.pathTemplate = None
@@ -80,7 +80,7 @@ class Window(Tk, Singleton):
                "Авторы:\n" \
                "Шестаков Павел\n" \
                "Шестакова Маргарита \n" \
-               "Автор3"
+               "Коркин Андрей"
         label = tk.Label(self.creators_window1, text=text, padx=20, pady=20)
         label.pack()
         label.bind("<Button-1>", self.open_link)
@@ -109,11 +109,11 @@ class Window(Tk, Singleton):
             messagebox.showerror("Ошибка", "Не выбраны файлы")
 
     def buttonData(self):
-        self.button = ttk.Button(self, text="Выбрать входной файл", command=self.inputPathData)
+        self.button = ttk.Button(self, text="Выбрать файл F2", command=self.inputPathData)
         self.button.place(x=40, y=200, width=self.buttonWidth, height=self.buttonHeight)
 
     def buttonTemplate(self):
-        self.buttontemplate = ttk.Button(self, text="Выбрать \nзаполняемый \nфайл", command=self.inputPathTemplate)
+        self.buttontemplate = ttk.Button(self, text="Выбрать файл НЗО", command=self.inputPathTemplate)
         self.buttontemplate.place(x=40, y=260, width=self.buttonWidth, height=self.buttonHeight)
 
     def buttonEven(self):

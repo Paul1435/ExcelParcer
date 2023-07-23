@@ -62,12 +62,17 @@ class opex():
             "ОП": dfs.loc[
                 (~dfs["Напр.Деятельности"].isin(self.direction_do[:2])) & (
                     dfs["Группа направлений"].isin(["Опережающая поставка"])) & (
+                    ~dfs["Класс оценки"].isin(self.class_est))],
+            "Ошибка": dfs.loc[
+                (~dfs["Напр.Деятельности"].isin(self.direction_do)) & (
+                    dfs["Группа направлений"].isin(["Ошибка"])) & (
                     ~dfs["Класс оценки"].isin(self.class_est))]
         }
 
     def automatic(self, dfs, templatePath, call_back):
         self.pre_pivot_table(dfs)
         for type in self.dictionary_pivot_table:
+            print(type)
             self.create_pivot_table(type)
             print(self.pivot_table)
             self.add_value_excel(templatePath, type)
@@ -78,7 +83,7 @@ class opex():
     def add_value_excel(self, templatePath, category):
         begin_row = Global_Var.start_opex
         sub_category = category
-        if category == "ОП":
+        if category == "ОП" or category == "Ошибка":
             sub_category = "текущий запас"
         for index in self.pivot_table.index:
             if (index == "102-04" or index == "102-11"):
@@ -91,7 +96,12 @@ class opex():
                 Global_Var.mistakes.append("Opex " + str(category) + " " + str(index))
                 begin_row = Global_Var.start_opex
                 continue
-            if category != "ОП":
+            if category == "Ошибка":
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                          self.pivot_table.columns[2])
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
+            elif category != "ОП":
                 self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index,
                                      self.pivot_table.columns[2])
                 self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")

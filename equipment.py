@@ -41,6 +41,10 @@ class OHCC():
             "ОП": dfs.loc[
                 (~dfs["Напр.Деятельности"].isin(self.direction_do[:2])) & (
                     dfs["Группа направлений"].isin(["Опережающая поставка"])) & (
+                    dfs["Класс оценки"].isin(self.class_est))],
+            "Ошибка": dfs.loc[
+                (~dfs["Напр.Деятельности"].isin(self.direction_do)) & (
+                    dfs["Группа направлений"].isin(["Ошибка"])) & (
                     dfs["Класс оценки"].isin(self.class_est))]
         }
 
@@ -69,7 +73,7 @@ class OHCC():
     def add_value_excel(self, templatePath, category):
         begin_row = Global_Var.start_equipment
         sub_category = category
-        if category == "ОП":
+        if category == "ОП" or category == "Ошибка":
             sub_category = "текущий запас"
         for index in self.pivot_table.index:
             if (index == "102-04" or index == "102-11"):
@@ -82,7 +86,12 @@ class OHCC():
                 Global_Var.mistakes.append("ОНСС " + str(category) + " " + str(index))
                 begin_row = Global_Var.start_equipment
                 continue
-            if category != "ОП":
+            if category == "Ошибка":
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                          self.pivot_table.columns[2])
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
+            elif category != "ОП":
                 self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index,
                                      self.pivot_table.columns[2])
                 self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
