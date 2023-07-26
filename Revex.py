@@ -61,12 +61,12 @@ class revex():
     def add_value_excel(self, templatePath, category):
         begin_row = Global_Var.start_revex
         for index in self.pivot_table.index:
-            if category == "Страховые запасы" or category == "НВИ":
+            if category == "страховые запасы" or category == "НВИ":
                 row = self.find_row(self.excel.sheet, "OPEX", index, category, "факт", begin_row)
             else:
                 row = self.find_row(self.excel.sheet, "OPEX", index, "текущий запас", "факт", begin_row)
             if row is None:
-                if category == "Страховые запасы" or category == "НВИ":
+                if category == "страховые запасы" or category == "НВИ":
                     row = self.find_row(self.excel.sheet, "OPEX", index, category, "факт", Global_Var.start_revex)
                 else:
                     row = self.find_row(self.excel.sheet, "OPEX", index, "текущий запас", "факт",

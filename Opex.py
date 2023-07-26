@@ -92,12 +92,11 @@ class opex():
             else:
                 row = self.find_row(self.excel.sheet, "OPEX", index, sub_category, "факт", begin_row)
                 begin_row = row
-            if category == "вторичное сырье":
-                print(row, begin_row)
-            if row is None:
-                begin_row = Global_Var.start_opex
-                row = self.find_row(self.excel.sheet, "OPEX", index, sub_category, "факт", begin_row)
-                begin_row = row
+                if row is None:
+                    begin_row = Global_Var.start_opex
+                    row = self.find_row(self.excel.sheet, "OPEX", index, sub_category, "факт", begin_row)
+                    begin_row = row
+            print(row, begin_row)
             if row is None:
                 Global_Var.mistakes.append("Opex " + str(category) + " " + str(index))
                 begin_row = Global_Var.start_opex
