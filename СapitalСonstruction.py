@@ -2,6 +2,7 @@ from tkinter import messagebox
 from functools import cache
 from Pivot_Table import create_pivot_table
 import Global_Var
+import pandas as pd
 
 
 class cap_construction:
@@ -29,16 +30,44 @@ class cap_construction:
         if type != "ТЗБП":
             self.pivot_table = self.createPivotTable(dfs, type, self.other_filter)
             winter_pivot = self.createPivotTable(dfs, type, self.winter_filter)
-            self.delete_mistake()
             if not self.pivot_table.empty:
-                if not '102-11' in self.pivot_table.index:
+                if not '102-04' in self.pivot_table.index:
+                    self.pivot_table.loc['102-04'] = 0
+                for index in self.pivot_table.index:
+                    if index == '102-04':
+                        continue
+                    self.pivot_table.loc["102-04"] += self.pivot_table.loc[index]
+                indexes_to_remove = [index for index in self.pivot_table.index if index != '102-04']
+                self.pivot_table.drop(index=indexes_to_remove, inplace=True)
+                if not winter_pivot.empty:
                     self.pivot_table.loc['102-11'] = 0
-                for index in winter_pivot.index:
-                    self.pivot_table.loc['102-11'] += winter_pivot.loc[index]
+                    for index in winter_pivot.index:
+                        self.pivot_table.loc["102-11"] += winter_pivot.loc[index]
             else:
                 if not winter_pivot.empty:
+                    if not '102-11' in winter_pivot.index:
+                        winter_pivot.loc["102-11"] = 0
+                    for index in winter_pivot.index:
+                        if index == '102-11':
+                            continue
+                        winter_pivot.loc["102-11"] += winter_pivot.loc[index]
+                    indexes_to_remove = [index for index in self.pivot_table.index if index != '102-11']
+                    winter_pivot.drop(index=indexes_to_remove, inplace=True)
                     self.pivot_table = winter_pivot
-                    self.delete_mistake()
+
+        # elif type != "ТЗБП":
+        #     self.pivot_table = self.createPivotTable(dfs, type, self.other_filter)
+        #     winter_pivot = self.createPivotTable(dfs, type, self.winter_filter)
+        #     self.delete_mistake()
+        #     if not self.pivot_table.empty:
+        #         if not '102-11' in self.pivot_table.index:
+        #             self.pivot_table.loc['102-11'] = 0
+        #         for index in winter_pivot.index:
+        #             self.pivot_table.loc['102-11'] += winter_pivot.loc[index]
+        #     else:
+        #         if not winter_pivot.empty:
+        #             self.pivot_table = winter_pivot
+        #             self.delete_mistake()
 
         if type == "ТЗБП":
             self.pivot_table = self.createPivotTable(dfs, type, self.other_filter)

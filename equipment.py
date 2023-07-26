@@ -8,7 +8,7 @@ class OHCC():
     def __init__(self, excel):
         self.pivot_table = None
         self.class_est = [800, 802, 1800]
-        self.group_direction = ["ОНСС"]
+        self.group_direction = ["ОНСС", "ОНСС_вспомогательные"]
         self.direction_do = [5, 6, 60]
         self.group_insurance_stock = ["Прочие, не учитываемые в расчете оборачиваемости"]
         self.excel = excel
@@ -78,8 +78,12 @@ class OHCC():
         for index in self.pivot_table.index:
             if (index == "102-04" or index == "102-11"):
                 row = self.find_row(self.excel.sheet, "КС", index, sub_category, "факт", Global_Var.start_cap_con)
-                begin_row = Global_Var.start_opex
+                begin_row = Global_Var.start_equipment
             else:
+                row = self.find_row(self.excel.sheet, "ОНСС", index, sub_category, "факт", begin_row)
+                begin_row = row
+            if row is None:
+                begin_row = Global_Var.start_equipment
                 row = self.find_row(self.excel.sheet, "ОНСС", index, sub_category, "факт", begin_row)
                 begin_row = row
             if row is None:
@@ -92,14 +96,14 @@ class OHCC():
                 self.excel.additional_res(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
                 self.excel.additional_res(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
             elif category != "ОП":
-                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index,
-                                     self.pivot_table.columns[2])
-                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
-                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                          self.pivot_table.columns[2])
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
             else:
                 self.excel.additional_res(self.pivot_table, row, [max(Global_Var.columns_reserve)], index,
                                           self.pivot_table.columns[2])
-                self.excel.push_cell(self.pivot_table, row, Global_Var.OP_column, index, "Приход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.OP_column, index, "Приход")
         try:
             self.excel.workbook.save(templatePath)
         except:

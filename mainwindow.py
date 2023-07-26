@@ -2,6 +2,8 @@ from tkinter import *
 import tkinter as tk
 from tkinter import ttk
 from tkinter.ttk import *
+
+import Global_Var
 from singleton import Singleton
 from tkinter import filedialog
 from tkinter import messagebox
@@ -105,6 +107,7 @@ class Window(Tk, Singleton):
 
             event.automatic(update_progress)
             self.progressbar["value"] = 0
+            Global_Var.step_load = 0
         else:
             messagebox.showerror("Ошибка", "Не выбраны файлы")
 

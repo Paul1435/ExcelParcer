@@ -50,6 +50,7 @@ class Sz_Go_etc():
             row = self.find_row(self.excel.sheet, category, index, "текущий запас", "факт", begin_row)
             if row is None:
                 row = self.find_row(self.excel.sheet, None, index, "текущий запас", "факт", begin_row)
+            print(row)
             begin_row = row
             if row is None:
                 Global_Var.mistakes.append(category + " " + str(index))

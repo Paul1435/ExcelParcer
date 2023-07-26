@@ -92,6 +92,12 @@ class opex():
             else:
                 row = self.find_row(self.excel.sheet, "OPEX", index, sub_category, "факт", begin_row)
                 begin_row = row
+            if category == "вторичное сырье":
+                print(row, begin_row)
+            if row is None:
+                begin_row = Global_Var.start_opex
+                row = self.find_row(self.excel.sheet, "OPEX", index, sub_category, "факт", begin_row)
+                begin_row = row
             if row is None:
                 Global_Var.mistakes.append("Opex " + str(category) + " " + str(index))
                 begin_row = Global_Var.start_opex
@@ -102,14 +108,14 @@ class opex():
                 self.excel.additional_res(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
                 self.excel.additional_res(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
             elif category != "ОП":
-                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index,
-                                     self.pivot_table.columns[2])
-                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
-                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                          self.pivot_table.columns[2])
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
             else:
                 self.excel.additional_res(self.pivot_table, row, [max(Global_Var.columns_reserve)], index,
                                           self.pivot_table.columns[2])
-                self.excel.push_cell(self.pivot_table, row, Global_Var.OP_column, index, "Приход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.OP_column, index, "Приход")
         try:
             self.excel.workbook.save(templatePath)
         except:

@@ -2,6 +2,7 @@ from functools import cache
 from Pivot_Table import create_pivot_table
 from tkinter import messagebox
 import Global_Var
+import pandas as pd
 
 
 class drilling():
@@ -31,13 +32,51 @@ class drilling():
     def general_table(self, dfs, type):
         self.pivot_table = self.create_pivot_table(dfs, self.filters_102_21, type)
         temp_table = self.create_pivot_table(dfs, self.filters_102_25, type)
-        if len(self.pivot_table.index) > 1:
-            self.pivot_table.loc['102-21'] += self.pivot_table.loc['102-25']
-        self.pivot_table.loc['102-25'] = 0
-        if len(temp_table.index) == 0:
-            self.pivot_table.drop('102-25')
-        for index in temp_table.index:
-            self.pivot_table.loc['102-25'] += temp_table.loc[index]
+        if not self.pivot_table.empty:
+            if not '102-21' in self.pivot_table.index:
+                self.pivot_table.loc['102-21'] = 0
+            for index in self.pivot_table.index:
+                if index == '102-21':
+                    continue
+                self.pivot_table.loc["102-21"] += self.pivot_table.loc[index]
+            indexes_to_remove = [index for index in self.pivot_table.index if index != '102-21']
+            self.pivot_table.drop(index=indexes_to_remove, inplace=True)
+
+            if not temp_table.empty:
+                self.pivot_table.loc['102-25'] = 0
+                for index in temp_table.index:
+                    self.pivot_table.loc["102-25"] += temp_table.loc[index]
+        else:
+            if not temp_table.empty:
+                if not '102-25' in temp_table.index:
+                    temp_table.loc["102-25"] = 0
+                for index in temp_table.index:
+                    if index == '102-25':
+                        continue
+                    temp_table.loc["102-25"] += temp_table.loc[index]
+                    indexes_to_remove = [index for index in self.pivot_table.index if index != '102-25']
+                    temp_table.drop(index=indexes_to_remove, inplace=True)
+                self.pivot_table = temp_table
+
+        # self.pivot_table = self.create_pivot_table(dfs, self.filters_102_21, type)
+        # temp_table = self.create_pivot_table(dfs, self.filters_102_25, type)
+        # if not self.pivot_table.empty:
+        #     if '102-25' in self.pivot_table.index:
+        #         self.pivot_table.loc['102-21'] += self.pivot_table.loc['102-25']
+        #         self.pivot_table.loc['102-25'] = 0
+        #     if len(temp_table.index) == 0:
+        #         if '102-25' in self.pivot_table.index:
+        #             self.pivot_table.drop('102-25')
+        #     else:
+        #         if not '102-25' in self.pivot_table.index:
+        #             self.pivot_table.loc['102-25'] = 0
+        #     for index in temp_table.index:
+        #         self.pivot_table.loc['102-25'] += temp_table.loc[index]
+        # else:
+        #     if not temp_table.empty:
+        #         self.pivot_table.loc['102-25'] = 0
+        #         for index in temp_table.index:
+        #             self.pivot_table.loc['102-25'] += temp_table.loc[index]
 
     def create_filter(self, dfs):
         for value in dfs['Кр. текст материала']:
@@ -62,8 +101,9 @@ class drilling():
         for index in self.pivot_table.index:
             row = self.find_row(self.excel.sheet, "Бурение", index, "текущий запас", "факт", row_begin)
             row_begin = row
+            print(row, row_begin)
             if row is None:
-                Global_Var.mistakes.append("Бурение " + str(index))
+                Global_Var.mistakes.append("Бурение " + category + " " + str(index))
                 row_begin = Global_Var.start_drilling
                 continue
             if (category == "ОП"):
@@ -89,6 +129,7 @@ class drilling():
     def automatic(self, obj, template_obj, call_back):
         type = ["текущий запас", 'ОП', "Ошибка"]
         self.create_filter(obj)
+        print(self.filters_102_25)
         for category in type:
             print(category)
             self.general_table(obj, category)

@@ -1,8 +1,7 @@
 from tkinter import messagebox
-import pandas as pd
 from СapitalСonstruction import cap_construction
 from Opex import opex
-from functools import cache
+import pandas as pd
 from drilling import drilling
 from Excel import push_excel
 import Global_Var
@@ -10,10 +9,10 @@ from equipment import OHCC
 from Revex import revex
 from Data import Data
 from SZ_GO_etc import Sz_Go_etc
-import concurrent.futures
+from functools import cache
 
 
-class ParseAndEnter():
+class ParseAndEnter:
     def __init__(self, template, data):
         self.templatePath = template
         self.dataPath = data
@@ -36,9 +35,9 @@ class ParseAndEnter():
         Global_Var.step_load += 4
         progress_call_back(Global_Var.step_load)
         Global_Var.columns_reserve = excel.find_column("Запасы на " + str(Global_Var.next_month), 5, 5)
-        Global_Var.columns_profit = excel.find_column("Приход " + str(Global_Var.cur_data)[3:], 5, 5)
+        Global_Var.columns_profit = excel.find_column("Приход " + parse_time[1][:-1], 5, 5)
         if len(Global_Var.columns_profit) != 0:
-            Global_Var.columns_lost = excel.find_column("Расход " + str(Global_Var.cur_data)[3:], 5, 5)
+            Global_Var.columns_lost = excel.find_column("Расход " + parse_time[1][:-1], 5, 5)
         Global_Var.step_load += 4
         progress_call_back(Global_Var.step_load)
         Global_Var.start_cap_con = excel.find_row_direction_cases("КС")
@@ -62,8 +61,8 @@ class ParseAndEnter():
             return
         excel = push_excel(self.templatePath)
         self.init_const(excel, dfs, progress_call_back)
-        mass_objs = [cap_construction(excel), OHCC(excel), opex(excel), Sz_Go_etc(excel), revex(excel), OHCC(excel),
-                     drilling(excel)]
+        mass_objs = [cap_construction(excel), drilling(excel), OHCC(excel), opex(excel), revex(excel), Sz_Go_etc(excel)]
+
         for el in mass_objs:
             el.automatic(dfs, self.templatePath, progress_call_back)
         if len(Global_Var.mistakes) != 0:

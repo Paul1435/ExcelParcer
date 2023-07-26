@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import calendar
 import locale
-import pymorphy3
+from dateutil.relativedelta import relativedelta
 
 
 class Data():
     def __init__(self):
-        self.changer = pymorphy3.MorphAnalyzer()
+        print('data init')
 
     def common_format(self, data):
         locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
@@ -15,9 +15,13 @@ class Data():
 
     def table_format(self, date_obj):
         locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
-        parsed_month = pymorphy3.MorphAnalyzer().parse(calendar.month_name[date_obj.month])[0]
-        month_name_decl = parsed_month.inflect({'sing', 'gent'}).word
-        return f"{date_obj.day} {month_name_decl} {date_obj.year}"
+        month = (str(calendar.month_name[date_obj.month])).lower()
+        if month == "август" or month == "март":
+            month = month + 'а'
+        else:
+            month = month[:-1] + 'я'
+        print(f"{date_obj.day} {month} {date_obj.year}")
+        return f"{date_obj.day} {month} {date_obj.year}"
 
     def current_time(self, data_pivot):
         cur_time = self.common_format(data_pivot)
@@ -25,5 +29,6 @@ class Data():
 
     def next_time(self, data_obj):
         cur_time = self.common_format(data_obj)
-        next_month = (cur_time + timedelta(days=int(data_obj[:2]))).replace(day=1)
-        return self.table_format(next_month)
+        input_date = datetime.strptime(str(cur_time), '%Y-%m-%d %H:%M:%S')
+        next_month_first_day = (input_date + relativedelta(months=1)).replace(day=1)
+        return self.table_format(next_month_first_day)

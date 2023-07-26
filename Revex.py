@@ -27,6 +27,14 @@ class revex():
             "текущий запас": dfs.loc[
                 (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
                     dfs["Группа направлений"].isin(self.group_direction))],
+            "страховые запасы": dfs.loc[
+                (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
+                    dfs["Группа направлений"].isin(["Прочие, не учитываемые в расчете оборачиваемости"])) & dfs[
+                    "Категория запаса"].isin(["SZ"])],
+            "НВИ": dfs.loc[
+                (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
+                    dfs["Группа направлений"].isin(["Прочие, учитываемые в расчете оборачиваемости"])) & dfs[
+                    "Категория запаса"].isin(["NV"])],
             "ОП": dfs.loc[
                 (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
                     dfs["Группа направлений"].isin(["Опережающая поставка"]))],
@@ -53,8 +61,18 @@ class revex():
     def add_value_excel(self, templatePath, category):
         begin_row = Global_Var.start_revex
         for index in self.pivot_table.index:
-            row = self.find_row(self.excel.sheet, "OPEX", index, "текущий запас", "факт", begin_row)
+            if category == "Страховые запасы" or category == "НВИ":
+                row = self.find_row(self.excel.sheet, "OPEX", index, category, "факт", begin_row)
+            else:
+                row = self.find_row(self.excel.sheet, "OPEX", index, "текущий запас", "факт", begin_row)
+            if row is None:
+                if category == "Страховые запасы" or category == "НВИ":
+                    row = self.find_row(self.excel.sheet, "OPEX", index, category, "факт", Global_Var.start_revex)
+                else:
+                    row = self.find_row(self.excel.sheet, "OPEX", index, "текущий запас", "факт",
+                                        Global_Var.start_revex)
             begin_row = row
+            print(row)
             if row is None:
                 Global_Var.mistakes.append("REVEX " + str(index))
                 begin_row = Global_Var.start_revex
@@ -67,12 +85,12 @@ class revex():
             elif category == "ОП":
                 self.excel.additional_res(self.pivot_table, row, [max(Global_Var.columns_reserve)], index,
                                           self.pivot_table.columns[2])
-                self.excel.push_cell(self.pivot_table, row, Global_Var.OP_column, index, "Приход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.OP_column, index, "Приход")
             else:
-                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index,
-                                     self.pivot_table.columns[2])
-                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
-                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                          self.pivot_table.columns[2])
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
         try:
             self.excel.workbook.save(templatePath)
         except:
