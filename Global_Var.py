@@ -14,6 +14,7 @@ start_drilling = None  #
 start_cap_con = None  #
 start_equipment = None
 start_etc = None
+start_Gaz = None
 
 cur_data = None  #
 next_month = None  #

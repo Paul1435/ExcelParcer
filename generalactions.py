@@ -46,6 +46,8 @@ class ParseAndEnter:
         Global_Var.start_drilling = excel.find_row_direction_cases("Бурение")
         Global_Var.start_equipment = excel.find_row_direction_cases("ОНСС")
         Global_Var.start_etc = excel.find_row_direction_cases("запасы ГО, СО, СИЗ")
+        Global_Var.start_Gaz = excel.find_row_direction_cases("Газовая программа")
+        print(Global_Var.start_Gaz)
         Global_Var.step_load += 10
         progress_call_back(Global_Var.step_load)
         print("const init")

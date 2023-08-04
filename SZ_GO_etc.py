@@ -31,7 +31,9 @@ class Sz_Go_etc():
                 dfs["Направление(Форма2)"].isin(["ГОиЧС"]))],
                                        "СОиСИЗ": dfs.loc[
                                            (dfs["Группа направлений"].isin(self.group_insurance_stock)) & (
-                                               dfs["Направление(Форма2)"].isin(["СОиСИЗ"]))]}
+                                               dfs["Направление(Форма2)"].isin(["СОиСИЗ"]))],
+                                       "Газовая программа": dfs.loc[
+                                           (dfs["Группа направлений"].isin(["Газовая программа"]))]}
 
     def automatic(self, dfs, templatePath, call_back):
         self.pre_pivot_table(dfs)
@@ -47,7 +49,10 @@ class Sz_Go_etc():
     def add_value_excel(self, templatePath, category):
         begin_row = Global_Var.start_etc
         for index in self.pivot_table.index:
-            row = self.find_row(self.excel.sheet, category, index, "текущий запас", "факт", begin_row)
+            if category == "Газовая программа":
+                row = self.find_row(self.excel.sheet, category, None, "текущий запас", "факт", Global_Var.start_Gaz)
+            else:
+                row = self.find_row(self.excel.sheet, category, index, "текущий запас", "факт", begin_row)
             if row is None:
                 row = self.find_row(self.excel.sheet, None, index, "текущий запас", "факт", begin_row)
             print(row)

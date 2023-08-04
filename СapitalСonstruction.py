@@ -14,7 +14,7 @@ class cap_construction:
         self.excel = pushExcel
         self.winter_filter = set()
         self.other_filter = set()
-        self.type = ["текущий запас", "ТЗБП", "ОП", "Ошибка"]
+        self.type = ["текущий запас", "ТЗБП", "ОП", "Ошибка", "НВИ", "НЛИ"]
         print("init capcon")
 
     def delete_mistake(self):
@@ -27,7 +27,10 @@ class cap_construction:
             self.pivot_table = self.pivot_table.drop('1020-11')
 
     def general_table(self, dfs, type):
-        if type != "ТЗБП":
+        if type == "НВИ" or type == "НЛИ":
+            self.pivot_table = self.createPivotTable(dfs, type, self.other_filter)
+            self.delete_mistake()
+        elif type != "ТЗБП":
             self.pivot_table = self.createPivotTable(dfs, type, self.other_filter)
             winter_pivot = self.createPivotTable(dfs, type, self.winter_filter)
             if not self.pivot_table.empty:
@@ -55,20 +58,6 @@ class cap_construction:
                     winter_pivot.drop(index=indexes_to_remove, inplace=True)
                     self.pivot_table = winter_pivot
 
-        # elif type != "ТЗБП":
-        #     self.pivot_table = self.createPivotTable(dfs, type, self.other_filter)
-        #     winter_pivot = self.createPivotTable(dfs, type, self.winter_filter)
-        #     self.delete_mistake()
-        #     if not self.pivot_table.empty:
-        #         if not '102-11' in self.pivot_table.index:
-        #             self.pivot_table.loc['102-11'] = 0
-        #         for index in winter_pivot.index:
-        #             self.pivot_table.loc['102-11'] += winter_pivot.loc[index]
-        #     else:
-        #         if not winter_pivot.empty:
-        #             self.pivot_table = winter_pivot
-        #             self.delete_mistake()
-
         if type == "ТЗБП":
             self.pivot_table = self.createPivotTable(dfs, type, self.other_filter)
             self.delete_mistake()
@@ -90,15 +79,32 @@ class cap_construction:
             "текущий запас": dfs.loc[
                 (dfs["Напр.Деятельности"].isin(self.direction_do)) & (dfs["СПП-элемент"].isin(filtered_values)) & (
                     dfs["Группа направлений"].isin(["ИД"]))],
+
             "ТЗБП": dfs.loc[
                 (dfs["Направление(Форма2)"].isin(["ТЗБП"])) & (
                     dfs["Группа направлений"].isin(["Прочие, не учитываемые в расчете оборачиваемости"]))],
+
             "ОП": dfs.loc[
                 (dfs["Напр.Деятельности"].isin(self.direction_do)) & (dfs["СПП-элемент"].isin(filtered_values)) & (
                     dfs["Группа направлений"].isin(["Опережающая поставка"]))],
+
             "Ошибка": dfs.loc[
                 (dfs["Напр.Деятельности"].isin(self.direction_do)) & (dfs["СПП-элемент"].isin(filtered_values)) & (
-                    dfs["Группа направлений"].isin(["Ошибка"]))]
+                    dfs["Группа направлений"].isin(["Ошибка"]))],
+
+            "НВИ": dfs.loc[
+                (dfs["Напр.Деятельности"].isin(self.direction_do)) &
+                (dfs["Направление(Форма2)"].isin(["НВИ/НЛИ"])) & (
+                    dfs["Группа направлений"].isin(["Прочие, учитываемые в расчете оборачиваемости"])) & (
+                    ~dfs["Класс оценки"].isin([800, 802, 1800])) & (
+                    dfs["Категория запаса"].isin(["NV"]))],
+
+            "НЛИ": dfs.loc[
+                (dfs["Напр.Деятельности"].isin(self.direction_do)) &
+                (dfs["Направление(Форма2)"].isin(["НВИ/НЛИ"])) & (
+                    dfs["Группа направлений"].isin(["Прочие, учитываемые в расчете оборачиваемости"])) & (
+                    ~dfs["Класс оценки"].isin([800, 802, 1800])) & (
+                    dfs["Категория запаса"].isin(["NL"]))],
         }
         return dictionary_pivot_table
 
@@ -115,8 +121,21 @@ class cap_construction:
     @cache
     def add_value_excel(self, path, type):
         row_begin = Global_Var.start_cap_con
+        if type == "НВИ" or type == "НЛИ":
+            for index in self.pivot_table.index:
+                if index != "102-04" and index != "102-11":
+                    continue
+                row = self.find_row(self.excel.sheet, "КС", index, type, "факт", row_begin)
+                if row is None:
+                    Global_Var.mistakes.append("КС " + str(type) + " " + str(index))
+                    row_begin = Global_Var.start_cap_con
+                    continue
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                     self.pivot_table.columns[2])
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
 
-        if type != "ОП" and type != "Ошибка":
+        elif type != "ОП" and type != "Ошибка":
             for index in self.pivot_table.index:
                 row = self.find_row(self.excel.sheet, "КС", index, type, "факт", row_begin)
                 row_begin = row
