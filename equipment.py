@@ -10,7 +10,6 @@ class OHCC():
         self.class_est = [800, 802, 1800]
         self.group_direction = ["ОНСС", "ОНСС_вспомогательные"]
         self.direction_do = [5, 6, 60]
-        self.group_insurance_stock = ["Прочие, не учитываемые в расчете оборачиваемости"]
         self.excel = excel
         print("OHCC init")
 
@@ -22,7 +21,8 @@ class OHCC():
                     dfs["Класс оценки"].isin(self.class_est))],
             "страховые запасы": dfs.loc[(~dfs["Напр.Деятельности"].isin(self.direction_do)) &
                                         (dfs["Направление(Форма2)"].isin(["Страховые запасы и Аварийные запасы"])) & (
-                                            dfs["Группа направлений"].isin(self.group_insurance_stock)) & (
+                                            dfs["Группа направлений"].isin(
+                                                ["Прочие, не учитываемые в расчете оборачиваемости"])) & (
                                             dfs["Класс оценки"].isin(self.class_est))],
 
             "вторичное сырье": dfs.loc[(~dfs["Напр.Деятельности"].isin(self.direction_do)) &

@@ -35,6 +35,10 @@ class revex():
                 (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
                     dfs["Группа направлений"].isin(["Прочие, учитываемые в расчете оборачиваемости"])) & dfs[
                     "Категория запаса"].isin(["NV"])],
+            "НЛИ": dfs.loc[
+                (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
+                    dfs["Группа направлений"].isin(["Прочие, учитываемые в расчете оборачиваемости"])) & dfs[
+                    "Категория запаса"].isin(["NL"])],
             "ОП": dfs.loc[
                 (dfs["Напр.Деятельности"].isin(self.direction_do)) & (
                     dfs["Группа направлений"].isin(["Опережающая поставка"]))],
@@ -61,7 +65,7 @@ class revex():
     def add_value_excel(self, templatePath, category):
         begin_row = Global_Var.start_revex
         for index in self.pivot_table.index:
-            if category == "страховые запасы" or category == "НВИ":
+            if category == "страховые запасы" or category == "НВИ" or category == "НЛИ":
                 row = self.find_row(self.excel.sheet, "OPEX", index, category, "факт", begin_row)
             else:
                 row = self.find_row(self.excel.sheet, "OPEX", index, "текущий запас", "факт", begin_row)
@@ -87,10 +91,10 @@ class revex():
                                           self.pivot_table.columns[2])
                 self.excel.additional_res(self.pivot_table, row, Global_Var.OP_column, index, "Приход")
             else:
-                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_reserve, index,
-                                          self.pivot_table.columns[2])
-                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
-                self.excel.additional_res(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_reserve, index,
+                                     self.pivot_table.columns[2])
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_profit, index, "Приход")
+                self.excel.push_cell(self.pivot_table, row, Global_Var.columns_lost, index, "Расход")
         try:
             self.excel.workbook.save(templatePath)
         except:
